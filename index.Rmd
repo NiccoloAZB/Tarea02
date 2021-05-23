@@ -1,0 +1,105 @@
+---
+title: "Tarea 02 Exploracion de datos"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exploración de datos hidrológicos
+### Preparacion de los datos
+
+```{r}
+inp <- read.csv("FDC.csv", na.strings = "")
+
+head(inp)
+
+dim(inp)
+
+inp[!complete.cases(inp),]
+#newinp <- na.omit(inp) (para corregir datos)
+
+```
+
+## Volumen de agua en el tiempo de los dos Rios
+```{r }
+plot(inp[,2], type = "l", col="violet", main="Volumen de agua en el tiempo de los dos Rios", xlab="Fecha", ylab="Caudal mm")
+lines(inp[,3],col="blue")
+```
+
+# Histogramas
+
+```{r}
+summary(inp[,2:3])
+```
+
+## Rio Estrella
+
+```{r}
+hist(inp[,2], col="blue", main="Histograma del Rio Estrella",xlab="Rango absoluto",ylab="Frecuencia")
+
+```
+
+## Rio Banano
+```{r}
+hist(inp[,3], col="purple", main="Histograma del Rio Banano",xlab="Rango absoluto",ylab="Frecuencia")
+```
+
+# Nombre a las variables
+```{r}
+names(inp) <- c("fecha", "Estrella", "Banano")
+attach(inp)
+```
+
+## Rio Estrella
+
+```{r}
+plot(Estrella, col="blue", type = "p", main="Rio Estrella",xlab="Fecha",ylab="Caudal mm")
+```
+
+# Formato de tiempo
+
+```{r}
+tempdate <- strptime(inp[,1], format= "%d/%m/%Y")
+
+MAQ_Estrella <- tapply(Estrella, format(tempdate, format="%Y"), FUN=sum)
+MAQ_Banano <- tapply(Banano, format(tempdate, format="%Y"), FUN=sum)
+MAQ_Banano
+MAQ_Estrella
+```
+
+## Crear un archivo .csv con el caudal anual
+
+```{r}
+write.csv(rbind(MAQ_Estrella,MAQ_Banano), file = "MAQ.csv")
+```
+
+# Grafica con limite
+
+```{r}
+plot(MAQ_Banano, ylim=c(100,3000), type = "l",main="Volumen de agua en el tiempo de los dos Rios",xlab="Fecha",ylab="Caudal", col="orange")
+lines(MAQ_Estrella,col="green") 
+```
+
+# Caudal anual
+
+```{r}
+MMQ_Estrella <- tapply(Estrella, format(tempdate, format="%m"), FUN=sum)
+MMQ_Banano <- tapply(Banano, format(tempdate, format="%m"), FUN=sum)
+MMQ_Banano
+MMQ_Estrella
+```
+
+# Analisis de correlacion
+
+```{r}
+corinp <- cor(inp[,2:3], method= "spearman")
+plot(Estrella,Banano, col="blue", main="Caudal de los dos Rios")
+
+inp.lm <- lm(inp[,2] ~ inp[,3], data=inp)
+summary(inp.lm)
+plot(inp.lm,
+     sub= "Regresión lineal",
+     )
+```
